@@ -1,4 +1,5 @@
 """Find TIC numbers from RA, Dec and Mag"""
+import warnings
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -111,9 +112,7 @@ class TICFinder:
             Whether to show a progress bar. You can silence the progress bar by setting this to False.
         """
         gdf = []
-        for idx in tqdm(
-            range(len(self.ra)), disable=~show_progress, desc="Cross matching targets"
-        ):
+        for idx in tqdm(range(len(self.ra)), desc="Cross matching targets"):
             ra, dec, magnitude = (
                 self.ra[idx],
                 self.dec[idx],
@@ -166,6 +165,9 @@ class TICFinder:
                     dec,
                     magnitude if magnitude is not None else np.nan,
                 )
+                series = pd.DataFrame([series])
+            if len(series) != 1:
+                raise ValueError
             gdf.append(series)
         gdf = pd.concat(gdf).reset_index(drop=True)
         self.gdf = self._clean_dataframe(gdf)
@@ -188,28 +190,30 @@ class TICFinder:
         def clean(x):
             return x if np.isfinite(x) else None
 
-        for idx in range(len(df)):
-            c = SkyCoord(
-                df.loc[idx]["RAJ2000"] * u.deg,
-                df.loc[idx]["DEJ2000"] * u.deg,
-                frame="icrs",
-                obstime="2020-01-01T00:00:00",
-                pm_ra_cosdec=df.loc[idx]["pmRA"] * u.mas / u.yr,
-                pm_dec=df.loc[idx]["pmDE"] * u.mas / u.yr,
-                distance=Distance(
-                    parallax=df.loc[idx]["Plx"] * u.mas, allow_negative=True
-                ),
-            ).apply_space_motion(dt=(self.epoch_decimal - 2000) * u.year)
-            tmag = ticgen.Star(
-                Bmag=clean(df.loc[idx, "Bmag"]),
-                Vmag=clean(df.loc[idx, "Vmag"]),
-                Jmag=clean(df.loc[idx, "Jmag"]),
-                Hmag=clean(df.loc[idx, "Hmag"]),
-                Ksmag=clean(df.loc[idx, "Kmag"]),
-            ).Tmag
-            df.loc[idx, [f"RAJ{self.epoch}", f"DEJ{self.epoch}", "tmag"]] = np.hstack(
-                [c.ra.deg, c.dec.deg, tmag]
-            )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for idx in range(len(df)):
+                c = SkyCoord(
+                    df.loc[idx]["RAJ2000"] * u.deg,
+                    df.loc[idx]["DEJ2000"] * u.deg,
+                    frame="icrs",
+                    obstime="2020-01-01T00:00:00",
+                    pm_ra_cosdec=df.loc[idx]["pmRA"] * u.mas / u.yr,
+                    pm_dec=df.loc[idx]["pmDE"] * u.mas / u.yr,
+                    distance=Distance(
+                        parallax=df.loc[idx]["Plx"] * u.mas, allow_negative=True
+                    ),
+                ).apply_space_motion(dt=(self.epoch_decimal - 2000) * u.year)
+                tmag = ticgen.Star(
+                    Bmag=clean(df.loc[idx, "Bmag"]),
+                    Vmag=clean(df.loc[idx, "Vmag"]),
+                    Jmag=clean(df.loc[idx, "Jmag"]),
+                    Hmag=clean(df.loc[idx, "Hmag"]),
+                    Ksmag=clean(df.loc[idx, "Kmag"]),
+                ).Tmag
+                df.loc[
+                    idx, [f"RAJ{self.epoch}", f"DEJ{self.epoch}", "tmag"]
+                ] = np.hstack([c.ra.deg, c.dec.deg, tmag])
         df[f"motion_from_2000_to_{self.epoch}_in_pixels"] = (
             np.asarray(
                 np.hypot(
@@ -222,7 +226,7 @@ class TICFinder:
         )
         return df
 
-    def to_csv(self):
+    def to_pandas(self, **kwargs):
         """Converts object to a pandas dataframe for easy storing"""
         if not hasattr(self, "tic"):
             log.warning("Run `get_tics` first.")

@@ -8,7 +8,7 @@ This tool helps you go from J2000 RA, Dec and [optionally] magnitude of sources 
 
 Using the `TICFinder` class, you can pass RA, Dec and optionally magnitude to search for TIC IDs. (**Note: You must use J2000 epoch RA and Dec**.)
 
-To use the class, pass in your RA, Dec and optional magnitude, and then use the `get_tics` class method to query for the TIC IDs. You can then access the `tic` attribute, or use the `to_csv` method to create a csv file of your input with TIC IDs.
+To use the class, pass in your RA, Dec and optional magnitude, and then use the `get_tics` class method to query for the TIC IDs. You can then access the `tic` attribute, or use the `to_pandas` method to create a csv file of your input with TIC IDs.
 
 ```python
 from ticfinder import TICFinder
@@ -24,10 +24,10 @@ tf = TICFinder.from_pandas(df)
 tf.get_tics()
 print(tf.tic)
 >>> [261136679, 261136641, 261136690, ...]
-tf.to_csv()
+tf.to_pandas()
 ```
 
-`tf.to_csv` will return a `pandas.DataFrame` with columns
+`tf.to_pandas` will return a `pandas.DataFrame` with columns
 
 ```python
 ['TIC', 'RA', 'Dec', 'Tmag', 'input_magnitude', 'pix_sep', 'motion_from_2000_to_YEAR_in_pixels']

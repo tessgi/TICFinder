@@ -21,7 +21,7 @@ def test_ticfinder():
     tf = TICFinder.from_pandas(df)
     tf.get_tics()
     assert tf.tic[0] == 261136679
-    tf.to_csv()
+    tf.to_pandas()
     tf = TICFinder(ra=84.2911880010838, dec=-80.4691198186792)
     tf.get_tics()
     assert tf.tic[0] == 261136679
