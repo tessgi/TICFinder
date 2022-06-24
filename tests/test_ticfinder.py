@@ -6,7 +6,7 @@ from ticfinder import TICFinder, __version__
 
 
 def test_version():
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.1.1"
 
 
 @pytest.mark.remote_data
