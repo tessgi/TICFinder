@@ -14,7 +14,7 @@ To use the class, pass in your RA, Dec and optional magnitude, and then use the 
 from ticfinder import TICFinder
 tf = TICFinder(ra=84.2911880010838, dec=-80.4691198186792, magnitude=5.5).get_tics()
 print(tf.tic)
->>> 261136679
+>>> [261136679]
 ```
 
 You can also load a dataframe or a csv file.
@@ -30,5 +30,5 @@ tf.to_csv()
 `tf.to_csv` will return a `pandas.DataFrame` with columns
 
 ```python
-['TIC', 'RA', 'Dec', 'Tmag', 'input_magnitude', 'pix_sep', 'motion_from_2000_to_2022_in_pixels']
+['TIC', 'RA', 'Dec', 'Tmag', 'input_magnitude', 'pix_sep', 'motion_from_2000_to_YEAR_in_pixels']
 ```
