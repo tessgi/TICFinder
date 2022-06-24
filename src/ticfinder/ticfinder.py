@@ -70,7 +70,7 @@ class TICFinder:
         fname : str
             Filename
         """
-        return TICFinder.from_pandas(pd.read_csv(fname)[:30])
+        return TICFinder.from_pandas(pd.read_csv(fname))
 
     @staticmethod
     def from_pandas(df):
